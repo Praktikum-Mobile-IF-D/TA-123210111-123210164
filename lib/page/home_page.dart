@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
-import 'package:ta_123210111_123210164/model/chapter_list.dart';
+import 'package:ta_123210111_123210164/model/manga_list.dart';
+import 'package:ta_123210111_123210164/page/chapter_list_page.dart';
 import 'package:ta_123210111_123210164/page/chapter_read_page.dart';
 import 'package:ta_123210111_123210164/model/url_builder.dart';
 
@@ -10,20 +11,20 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _ChapterListPageState();
+  State<HomePage> createState() => _HomePagePageState();
 }
 
-class _ChapterListPageState extends State<HomePage> {
-  Future<ChapterList>? chapters;
+class _HomePagePageState extends State<HomePage> {
+  Future<MangaList>? mangas;
   int initialOffset = 0;
 
   @override
   void initState() {
     super.initState();
-    chapters = fetchCircuits(initialOffset);
+    mangas = fetchCircuits(initialOffset);
   }
 
-  Future<ChapterList> fetchCircuits(offset) async {
+  Future<MangaList> fetchCircuits(offset) async {
     UrlBuilder urlBuilder = UrlBuilder('manga');
 
     var url = urlBuilder.build();
@@ -31,7 +32,7 @@ class _ChapterListPageState extends State<HomePage> {
     var response = await http.get(url);
 
     if (response.statusCode == 200) {
-      return ChapterList.fromJson(convert.jsonDecode(response.body));
+      return MangaList.fromJson(convert.jsonDecode(response.body));
     } else {
       throw Exception('Failed to load manga images, ${response.statusCode}');
     }
@@ -49,8 +50,8 @@ class _ChapterListPageState extends State<HomePage> {
           ),
         ],
       ),
-      body: FutureBuilder<ChapterList>(
-        future: chapters,
+      body: FutureBuilder<MangaList>(
+        future: mangas,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -65,7 +66,7 @@ class _ChapterListPageState extends State<HomePage> {
                     child: ListView.builder(
                   itemCount: snapshot.data!.data!.length,
                   itemBuilder: (context, index) {
-                    var chapter = snapshot.data!.data![index];
+                    var manga = snapshot.data!.data![index];
                     return Card(
                       elevation: 2,
                       margin: const EdgeInsets.symmetric(
@@ -77,7 +78,9 @@ class _ChapterListPageState extends State<HomePage> {
                           children: [
                             ListTile(
                               title: Text(
-                                chapter.id ?? '',
+                                manga.attributes?.title?.titles['en'] ??
+                                    (manga.attributes?.title?.titles.isNotEmpty == true ?
+                                    manga.attributes?.title?.titles.values.first : '') ?? '',
                                 style: const TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
@@ -86,20 +89,23 @@ class _ChapterListPageState extends State<HomePage> {
                                 children: [
                                   const SizedBox(height: 5),
                                   Text(
-                                      'Volume: ${chapter.attributes?.volume ?? ''}'),
+                                      manga.attributes?.description?.en ??
+                                          (manga.attributes?.description?.descriptions.values.isNotEmpty == true ?
+                                          manga.attributes?.description?.descriptions.values.first : '') ?? ''),
+                                  // Text(
+                                  //     'Title: ${manga.attributes?.title?.titles ?? ''}'),
                                   Text(
-                                      'Chapter: ${chapter.attributes?.chapter ?? ''}'),
-                                  Text(
-                                      'Language: ${chapter.attributes?.translatedLanguage ?? ''}'),
+                                      'Year: ${manga.attributes?.year ?? ''}'),
                                 ],
                               ),
                               trailing: const Icon(Icons.keyboard_arrow_right),
                               onTap: () {
+                                // print(manga.attributes?.description?.descriptions.values.toList().first);
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ReadChapter(
-                                        chapterId: chapter.id ?? ''),
+                                    builder: (context) => ChapterListPage(
+                                        mangaId: manga.id ?? ''),
                                   ),
                                 );
                               },
@@ -116,14 +122,14 @@ class _ChapterListPageState extends State<HomePage> {
                       ElevatedButton(
                           onPressed: snapshot.data!.offset! > 0 ? () {
                             setState(() {
-                              chapters = previousPage(snapshot.data!.offset);
+                              mangas = previousPage(snapshot.data!.offset);
                             });
                           } : null,
                           child: Text('Previous')),
                       ElevatedButton(
                           onPressed: snapshot.data!.offset! + 21 < snapshot.data!.total! ? () {
                             setState(() {
-                              chapters = nextPage(snapshot.data!.offset);
+                              mangas = nextPage(snapshot.data!.offset);
                             });
                           } : null,
                           child: Text('Next')),
@@ -136,12 +142,12 @@ class _ChapterListPageState extends State<HomePage> {
     );
   }
 
-  Future<ChapterList> nextPage(var offset) {
+  Future<MangaList> nextPage(var offset) {
     offset = offset + 20;
     return fetchCircuits(offset);
   }
 
-  Future<ChapterList> previousPage(var offset) {
+  Future<MangaList> previousPage(var offset) {
     offset = offset - 20;
     if(offset < 0) return fetchCircuits(0);
     return fetchCircuits(offset);

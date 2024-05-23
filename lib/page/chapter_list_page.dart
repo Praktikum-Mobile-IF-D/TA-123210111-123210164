@@ -7,7 +7,9 @@ import 'package:ta_123210111_123210164/page/chapter_read_page.dart';
 import 'package:ta_123210111_123210164/model/url_builder.dart';
 
 class ChapterListPage extends StatefulWidget {
-  const ChapterListPage({super.key});
+  final String mangaId;
+  ChapterListPage({required this.mangaId});
+  // const ChapterListPage({super.key});
 
   @override
   State<ChapterListPage> createState() => _ChapterListPageState();
@@ -24,8 +26,8 @@ class _ChapterListPageState extends State<ChapterListPage> {
   }
 
   Future<ChapterList> fetchCircuits(offset) async {
-    String mangaIdSementaraAja = "38179337-1640-4927-8851-9bedd8d19e82";
-    UrlBuilder urlBuilder = UrlBuilder('manga/$mangaIdSementaraAja/feed');
+    // String mangaIdSementaraAja = "38179337-1640-4927-8851-9bedd8d19e82";
+    UrlBuilder urlBuilder = UrlBuilder('manga/${widget.mangaId}/feed');
 
     // todo: filter & search
     Map<String, String> parameter = {
@@ -115,7 +117,7 @@ class _ChapterListPageState extends State<ChapterListPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ReadChapter(
+                                    builder: (context) => ChapterReadPage(
                                         chapterId: chapter.id ?? ''),
                                   ),
                                 );

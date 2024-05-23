@@ -4,15 +4,15 @@ import 'dart:convert' as convert;
 import 'package:ta_123210111_123210164/model/chapter_image.dart';
 import 'package:ta_123210111_123210164/model/url_builder.dart';
 
-class ReadChapter extends StatefulWidget {
+class ChapterReadPage extends StatefulWidget {
   final String chapterId;
-  ReadChapter({required this.chapterId});
+  ChapterReadPage({required this.chapterId});
 
   @override
-  State<ReadChapter> createState() => _ReadChapterState();
+  State<ChapterReadPage> createState() => _ChapterReadPageState();
 }
 
-class _ReadChapterState extends State<ReadChapter> {
+class _ChapterReadPageState extends State<ChapterReadPage> {
   Future<ChapterImage>? circuits;
   int _currentIndex = 0;
 
