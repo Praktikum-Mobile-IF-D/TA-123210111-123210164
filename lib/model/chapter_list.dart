@@ -1,7 +1,9 @@
+import 'package:ta_123210111_123210164/model/manga_list.dart';
+
 class ChapterList {
   final String? result;
   final String? response;
-  final List<Data>? data;
+  final List<ChapterData>? data;
   final int? limit;
   final int? offset;
   final int? total;
@@ -18,7 +20,7 @@ class ChapterList {
   ChapterList.fromJson(Map<String, dynamic> json)
       : result = json['result'] as String?,
         response = json['response'] as String?,
-        data = (json['data'] as List?)?.map((dynamic e) => Data.fromJson(e as Map<String,dynamic>)).toList(),
+        data = (json['data'] as List?)?.map((dynamic e) => ChapterData.fromJson(e as Map<String,dynamic>)).toList(),
         limit = json['limit'] as int?,
         offset = json['offset'] as int?,
         total = json['total'] as int?;
@@ -33,23 +35,23 @@ class ChapterList {
   };
 }
 
-class Data {
+class ChapterData {
   final String? id;
   final String? type;
-  final Attributes? attributes;
+  final ChapterAttributes? attributes;
   final List<Relationships>? relationships;
 
-  Data({
+  ChapterData({
     this.id,
     this.type,
     this.attributes,
     this.relationships,
   });
 
-  Data.fromJson(Map<String, dynamic> json)
+  ChapterData.fromJson(Map<String, dynamic> json)
       : id = json['id'] as String?,
         type = json['type'] as String?,
-        attributes = (json['attributes'] as Map<String,dynamic>?) != null ? Attributes.fromJson(json['attributes'] as Map<String,dynamic>) : null,
+        attributes = (json['attributes'] as Map<String,dynamic>?) != null ? ChapterAttributes.fromJson(json['attributes'] as Map<String,dynamic>) : null,
         relationships = (json['relationships'] as List?)?.map((dynamic e) => Relationships.fromJson(e as Map<String,dynamic>)).toList();
 
   Map<String, dynamic> toJson() => {
@@ -60,7 +62,7 @@ class Data {
   };
 }
 
-class Attributes {
+class ChapterAttributes {
   final String? volume;
   final String? chapter;
   final dynamic title;
@@ -73,7 +75,7 @@ class Attributes {
   final int? pages;
   final int? version;
 
-  Attributes({
+  ChapterAttributes({
     this.volume,
     this.chapter,
     this.title,
@@ -87,7 +89,7 @@ class Attributes {
     this.version,
   });
 
-  Attributes.fromJson(Map<String, dynamic> json)
+  ChapterAttributes.fromJson(Map<String, dynamic> json)
       : volume = json['volume'] as String?,
         chapter = json['chapter'] as String?,
         title = json['title'],
@@ -115,21 +117,21 @@ class Attributes {
   };
 }
 
-class Relationships {
-  final String? id;
-  final String? type;
-
-  Relationships({
-    this.id,
-    this.type,
-  });
-
-  Relationships.fromJson(Map<String, dynamic> json)
-      : id = json['id'] as String?,
-        type = json['type'] as String?;
-
-  Map<String, dynamic> toJson() => {
-    'id' : id,
-    'type' : type
-  };
-}
+// class Relationships {
+//   final String? id;
+//   final String? type;
+//
+//   Relationships({
+//     this.id,
+//     this.type,
+//   });
+//
+//   Relationships.fromJson(Map<String, dynamic> json)
+//       : id = json['id'] as String?,
+//         type = json['type'] as String?;
+//
+//   Map<String, dynamic> toJson() => {
+//     'id' : id,
+//     'type' : type
+//   };
+// }

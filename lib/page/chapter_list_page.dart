@@ -8,7 +8,7 @@ import 'package:ta_123210111_123210164/model/url_builder.dart';
 
 class ChapterListPage extends StatefulWidget {
   final String mangaId;
-  ChapterListPage({required this.mangaId});
+  const ChapterListPage({super.key, required this.mangaId});
   // const ChapterListPage({super.key});
 
   @override
@@ -22,13 +22,12 @@ class _ChapterListPageState extends State<ChapterListPage> {
   @override
   void initState() {
     super.initState();
-    chapters = fetchCircuits(initialOffset);
+    chapters = getChapters(initialOffset);
   }
 
   // todo: pilih bahasa
 
-  Future<ChapterList> fetchCircuits(offset) async {
-    // String mangaIdSementaraAja = "38179337-1640-4927-8851-9bedd8d19e82";
+  Future<ChapterList> getChapters(offset) async {
     UrlBuilder urlBuilder = UrlBuilder('manga/${widget.mangaId}/feed');
 
     Map<String, String> parameter = {
@@ -47,7 +46,6 @@ class _ChapterListPageState extends State<ChapterListPage> {
         .addParam('offset', '$offset');
 
     var url = urlBuilder.build();
-    print(url);
     var response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -139,14 +137,14 @@ class _ChapterListPageState extends State<ChapterListPage> {
                               chapters = previousPage(snapshot.data!.offset);
                             });
                           } : null,
-                          child: Text('Previous')),
+                          child: const Text('Previous')),
                       ElevatedButton(
                           onPressed: snapshot.data!.offset! + 21 < snapshot.data!.total! ? () {
                             setState(() {
                               chapters = nextPage(snapshot.data!.offset);
                             });
                           } : null,
-                          child: Text('Next')),
+                          child: const Text('Next')),
                     ])
               ],
             );
@@ -173,13 +171,13 @@ class _ChapterListPageState extends State<ChapterListPage> {
 
   Future<ChapterList> nextPage(var offset) {
     offset = offset + 20;
-    return fetchCircuits(offset);
+    return getChapters(offset);
   }
 
   Future<ChapterList> previousPage(var offset) {
     offset = offset - 20;
-    if(offset < 0) return fetchCircuits(0);
-    return fetchCircuits(offset);
+    if(offset < 0) return getChapters(0);
+    return getChapters(offset);
   }
 
   // child: Row(

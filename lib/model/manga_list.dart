@@ -58,6 +58,19 @@ class Data {
     'attributes' : attributes?.toJson(),
     'relationships' : relationships?.map((e) => e.toJson()).toList()
   };
+
+  Relationships? getCoverId() {
+    return relationships?.firstWhere(
+            (relationship) => relationship.type == 'cover_art');
+  }
+  Relationships? getArtist() {
+    return relationships?.firstWhere(
+            (relationship) => relationship.type == 'artist');
+  }
+  Relationships? getAuthor() {
+    return relationships?.firstWhere(
+            (relationship) => relationship.type == 'author');
+  }
 }
 
 class Attributes {
@@ -149,6 +162,21 @@ class Attributes {
     'availableTranslatedLanguages' : availableTranslatedLanguages,
     'latestUploadedChapter' : latestUploadedChapter
   };
+
+  String? getEnAltTitle() {
+    if (altTitles == null) return null;
+    for (var altTitle in altTitles!) {
+      if (altTitle.altNames.containsKey('en')) {
+        return altTitle.altNames['en'];
+      }
+    }
+    for (var altTitle in altTitles!) {
+      if (altTitle.altNames.containsKey('ja')) {
+        return altTitle.altNames['ja'];
+      }
+    }
+    return null;
+  }
 }
 
 class Title {
@@ -343,20 +371,206 @@ class Name {
 }
 
 class Relationships {
-final String? id;
-final String? type;
+  final String? id;
+  final String? type;
+  final CoverAttributes? attributes;
 
-Relationships({
-this.id,
-this.type,
-});
+  Relationships.fromJson(Map<String, dynamic> json)
+      : id = json['id'] as String?,
+        type = json['type'] as String?,
+        attributes = (json['attributes'] as Map<String,dynamic>?) != null ? CoverAttributes.fromJson(json['attributes'] as Map<String,dynamic>) : null;
 
-Relationships.fromJson(Map<String, dynamic> json)
-    : id = json['id'] as String?,
-type = json['type'] as String?;
-
-Map<String, dynamic> toJson() => {
-'id' : id,
-'type' : type
-};
+  Map<String, dynamic> toJson() => {
+    'id' : id,
+    'type' : type,
+    'attributes' : attributes?.toJson()
+  };
 }
+
+class CoverAttributes {
+  final String? description;
+  final String? volume;
+  final String? fileName;
+  final String? locale;
+  final String? createdAt;
+  final String? updatedAt;
+  final int? version;
+
+  final String? name;
+  final dynamic imageUrl;
+  final String? twitter;
+  final dynamic pixiv;
+  final dynamic melonBook;
+  final dynamic fanBox;
+  final dynamic booth;
+  final dynamic namicomi;
+  final dynamic nicoVideo;
+  final dynamic skeb;
+  final dynamic fantia;
+  final dynamic tumblr;
+  final dynamic youtube;
+  final dynamic weibo;
+  final dynamic naver;
+  final String? website;
+
+  CoverAttributes({
+    this.description,
+    this.volume,
+    this.fileName,
+    this.locale,
+    this.createdAt,
+    this.updatedAt,
+    this.version,
+    this.name,
+    this.imageUrl,
+    this.twitter,
+    this.pixiv,
+    this.melonBook,
+    this.fanBox,
+    this.booth,
+    this.namicomi,
+    this.nicoVideo,
+    this.skeb,
+    this.fantia,
+    this.tumblr,
+    this.youtube,
+    this.weibo,
+    this.naver,
+    this.website,
+  });
+
+  CoverAttributes.fromJson(Map<String, dynamic> json)
+      : description = json['description'] as String?,
+        volume = json['volume'] as String?,
+        fileName = json['fileName'] as String?,
+        locale = json['locale'] as String?,
+        createdAt = json['createdAt'] as String?,
+        updatedAt = json['updatedAt'] as String?,
+        version = json['version'] as int?,
+        name = json['name'] as String?,
+        imageUrl = json['imageUrl'],
+        twitter = json['twitter'] as String?,
+        pixiv = json['pixiv'],
+        melonBook = json['melonBook'],
+        fanBox = json['fanBox'],
+        booth = json['booth'],
+        namicomi = json['namicomi'],
+        nicoVideo = json['nicoVideo'],
+        skeb = json['skeb'],
+        fantia = json['fantia'],
+        tumblr = json['tumblr'],
+        youtube = json['youtube'],
+        weibo = json['weibo'],
+        naver = json['naver'],
+        website = json['website'] as String?;
+
+  Map<String, dynamic> toJson() => {
+    'description' : description,
+    'volume' : volume,
+    'fileName' : fileName,
+    'locale' : locale,
+    'createdAt' : createdAt,
+    'updatedAt' : updatedAt,
+    'version' : version,
+    'name' : name,
+    'imageUrl' : imageUrl,
+    'twitter' : twitter,
+    'pixiv' : pixiv,
+    'melonBook' : melonBook,
+    'fanBox' : fanBox,
+    'booth' : booth,
+    'namicomi' : namicomi,
+    'nicoVideo' : nicoVideo,
+    'skeb' : skeb,
+    'fantia' : fantia,
+    'tumblr' : tumblr,
+    'youtube' : youtube,
+    'weibo' : weibo,
+    'naver' : naver,
+    'website' : website
+  };
+}
+
+// class ArtistAttributes {
+//   final String? name;
+//   final dynamic imageUrl;
+//   final String? twitter;
+//   final dynamic pixiv;
+//   final dynamic melonBook;
+//   final dynamic fanBox;
+//   final dynamic booth;
+//   final dynamic namicomi;
+//   final dynamic nicoVideo;
+//   final dynamic skeb;
+//   final dynamic fantia;
+//   final dynamic tumblr;
+//   final dynamic youtube;
+//   final dynamic weibo;
+//   final dynamic naver;
+//   final String? website;
+//
+//   ArtistAttributes({
+//     this.name,
+//     this.imageUrl,
+//     this.twitter,
+//     this.pixiv,
+//     this.melonBook,
+//     this.fanBox,
+//     this.booth,
+//     this.namicomi,
+//     this.nicoVideo,
+//     this.skeb,
+//     this.fantia,
+//     this.tumblr,
+//     this.youtube,
+//     this.weibo,
+//     this.naver,
+//     this.website,
+//     this.createdAt,
+//     this.updatedAt,
+//     this.version,
+//   });
+//
+//   ArtistAttributes.fromJson(Map<String, dynamic> json)
+//       : name = json['name'] as String?,
+//         imageUrl = json['imageUrl'],
+//         twitter = json['twitter'] as String?,
+//         pixiv = json['pixiv'],
+//         melonBook = json['melonBook'],
+//         fanBox = json['fanBox'],
+//         booth = json['booth'],
+//         namicomi = json['namicomi'],
+//         nicoVideo = json['nicoVideo'],
+//         skeb = json['skeb'],
+//         fantia = json['fantia'],
+//         tumblr = json['tumblr'],
+//         youtube = json['youtube'],
+//         weibo = json['weibo'],
+//         naver = json['naver'],
+//         website = json['website'] as String?,
+//         createdAt = json['createdAt'] as String?,
+//         updatedAt = json['updatedAt'] as String?,
+//         version = json['version'] as int?;
+//
+//   Map<String, dynamic> toJson() => {
+//     'name' : name,
+//     'imageUrl' : imageUrl,
+//     'twitter' : twitter,
+//     'pixiv' : pixiv,
+//     'melonBook' : melonBook,
+//     'fanBox' : fanBox,
+//     'booth' : booth,
+//     'namicomi' : namicomi,
+//     'nicoVideo' : nicoVideo,
+//     'skeb' : skeb,
+//     'fantia' : fantia,
+//     'tumblr' : tumblr,
+//     'youtube' : youtube,
+//     'weibo' : weibo,
+//     'naver' : naver,
+//     'website' : website,
+//     'createdAt' : createdAt,
+//     'updatedAt' : updatedAt,
+//     'version' : version
+//   };
+// }
