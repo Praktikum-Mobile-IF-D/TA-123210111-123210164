@@ -1,15 +1,15 @@
-class MangaImage {
+class ChapterImage {
   final String? result;
   final String? baseUrl;
   final Chapter? chapter;
 
-  MangaImage({
+  ChapterImage({
     this.result,
     this.baseUrl,
     this.chapter,
   });
 
-  MangaImage.fromJson(Map<String, dynamic> json)
+  ChapterImage.fromJson(Map<String, dynamic> json)
       : result = json['result'] as String?,
         baseUrl = json['baseUrl'] as String?,
         chapter = (json['chapter'] as Map<String,dynamic>?) != null ? Chapter.fromJson(json['chapter'] as Map<String,dynamic>) : null;

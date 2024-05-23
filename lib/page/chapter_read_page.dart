@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
-import 'package:ta_123210111_123210164/model/manga_image.dart';
+import 'package:ta_123210111_123210164/model/chapter_image.dart';
 import 'package:ta_123210111_123210164/model/url_builder.dart';
 
 class ReadChapter extends StatefulWidget {
@@ -13,7 +13,7 @@ class ReadChapter extends StatefulWidget {
 }
 
 class _ReadChapterState extends State<ReadChapter> {
-  Future<MangaImage>? circuits;
+  Future<ChapterImage>? circuits;
   int _currentIndex = 0;
 
   @override
@@ -22,14 +22,14 @@ class _ReadChapterState extends State<ReadChapter> {
     circuits = fetchCircuits();
   }
 
-  Future<MangaImage> fetchCircuits() async {
+  Future<ChapterImage> fetchCircuits() async {
     UrlBuilder urlBuilder = UrlBuilder('at-home/server/${widget.chapterId}');
     var url = urlBuilder.build();
     // var url = Uri.parse('https://api.mangadex.org/at-home/server/a54c491c-8e4c-4e97-8873-5b79e59da210');
     var response = await http.get(url);
 
     if (response.statusCode == 200) {
-      return MangaImage.fromJson(convert.jsonDecode(response.body));
+      return ChapterImage.fromJson(convert.jsonDecode(response.body));
     } else {
       throw Exception('Failed to load manga images');
     }
@@ -47,7 +47,7 @@ class _ReadChapterState extends State<ReadChapter> {
           ),
         ],
       ),
-      body: FutureBuilder<MangaImage>(
+      body: FutureBuilder<ChapterImage>(
         future: circuits,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ta_123210111_123210164/page/chapter_list_page.dart';
 import 'package:ta_123210111_123210164/page/chapter_read_page.dart';
+import 'package:ta_123210111_123210164/page/home_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: ChapterListPage(),
+      home: HomePage(),
     );
   }
 }
