@@ -25,11 +25,12 @@ class _ChapterListPageState extends State<ChapterListPage> {
     chapters = fetchCircuits(initialOffset);
   }
 
+  // todo: pilih bahasa
+
   Future<ChapterList> fetchCircuits(offset) async {
     // String mangaIdSementaraAja = "38179337-1640-4927-8851-9bedd8d19e82";
     UrlBuilder urlBuilder = UrlBuilder('manga/${widget.mangaId}/feed');
 
-    // todo: filter & search
     Map<String, String> parameter = {
       'chapter': 'asc',
     };

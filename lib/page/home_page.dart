@@ -16,15 +16,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePagePageState extends State<HomePage> {
   Future<MangaList>? mangas;
-  int initialOffset = 0;
 
   @override
   void initState() {
     super.initState();
-    mangas = fetchCircuits(initialOffset);
+    mangas = fetchCircuits();
   }
 
-  Future<MangaList> fetchCircuits(offset) async {
+  // TODO: bikin search manga
+  // TODO: bikin favorit
+  // TODO: filters
+
+  Future<MangaList> fetchCircuits() async {
     UrlBuilder urlBuilder = UrlBuilder('manga');
 
     var url = urlBuilder.build();
@@ -116,40 +119,11 @@ class _HomePagePageState extends State<HomePage> {
                     );
                   },
                 )),
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                          onPressed: snapshot.data!.offset! > 0 ? () {
-                            setState(() {
-                              mangas = previousPage(snapshot.data!.offset);
-                            });
-                          } : null,
-                          child: Text('Previous')),
-                      ElevatedButton(
-                          onPressed: snapshot.data!.offset! + 21 < snapshot.data!.total! ? () {
-                            setState(() {
-                              mangas = nextPage(snapshot.data!.offset);
-                            });
-                          } : null,
-                          child: Text('Next')),
-                    ])
               ],
             );
           }
         },
       ),
     );
-  }
-
-  Future<MangaList> nextPage(var offset) {
-    offset = offset + 20;
-    return fetchCircuits(offset);
-  }
-
-  Future<MangaList> previousPage(var offset) {
-    offset = offset - 20;
-    if(offset < 0) return fetchCircuits(0);
-    return fetchCircuits(offset);
   }
 }
