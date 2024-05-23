@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
 import 'package:ta_123210111_123210164/model/chapter_list.dart';
-import 'package:ta_123210111_123210164/chapter_read_page.dart';
-import 'package:ta_123210111_123210164/url_builder.dart';
+import 'package:ta_123210111_123210164/page/chapter_read_page.dart';
+import 'package:ta_123210111_123210164/model/url_builder.dart';
 
 class ChapterListPage extends StatefulWidget {
   const ChapterListPage({super.key});

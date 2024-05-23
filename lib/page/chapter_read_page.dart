@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 import 'package:ta_123210111_123210164/model/manga_image.dart';
-import 'package:ta_123210111_123210164/url_builder.dart';
+import 'package:ta_123210111_123210164/model/url_builder.dart';
 
 class ReadChapter extends StatefulWidget {
   final String chapterId;
