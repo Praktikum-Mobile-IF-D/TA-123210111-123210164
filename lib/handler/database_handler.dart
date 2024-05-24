@@ -2,7 +2,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../model/user.dart';
 
-
 class DatabaseHandler {
   static Database? _database;
 
@@ -14,14 +13,15 @@ class DatabaseHandler {
 
   Future<Database> initializeDB() async {
     String path = await getDatabasesPath();
+    await deleteDatabase(join(path, 'user.db'));
     return openDatabase(
       join(path, 'user.db'),
       onCreate: (database, version) async {
         await database.execute(
-          "CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT, favorites TEXT)",
+          "CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT, favorites TEXT, image TEXT)",
         );
       },
-      version: 1,
+      version: 2,
     );
   }
 

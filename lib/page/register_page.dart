@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../handler/database_handler.dart';
 import '../model/user.dart';
 import '../widgets/button_widget.dart';
@@ -14,6 +17,20 @@ class _RegisterPageState extends State<RegisterPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _dbHandler = DatabaseHandler();
+  File? _imageFile;
+  final _picker = ImagePicker();
+
+  Future getImageFromCamera() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+
+    setState(() {
+      if (pickedFile != null) {
+        _imageFile = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,9 +108,10 @@ class _RegisterPageState extends State<RegisterPage> {
                               text: "Register",
                               backColor: isDarkMode ? [Colors.black, Colors.black] : const [Color(0xff92A3FD), Color(0xff9DCEFF)],
                               textColor: const [Colors.white, Colors.white],
-                              onPressed: () {
+                              onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
-                                  User user = User(username: _usernameController.text, password: _passwordController.text, favorites: '');
+                                  await getImageFromCamera();
+                                  User user = User(username: _usernameController.text, password: _passwordController.text, favorites: '', image: _imageFile);
                                   _dbHandler.insertUser(user);
                                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Registered successfully')));
                                 }
