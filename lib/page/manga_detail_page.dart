@@ -246,6 +246,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                       } else if (!snapshot.hasData || snapshot.data == null) {
                         return const Center(child: Text('No data available'));
                       } else {
+                        print(groupChaptersByVolume(snapshot.data?.data)['chapter']);
                         return Column(
                           children: [
                             ListView.builder(
@@ -328,6 +329,35 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
       ),
     );
   }
+
+  Map<String, List<ChapterData>> groupChaptersByVolume(List<ChapterData>? chapters) {
+    var groupedChapters = <String, List<ChapterData>>{};
+    for (var chapter in chapters!) {
+      var volume = chapter.attributes?.volume ?? 'Unknown Volume';
+      if (!groupedChapters.containsKey(volume)) {
+        groupedChapters[volume] = [];
+      }
+      groupedChapters[volume]!.add(chapter);
+    }
+    return groupedChapters;
+  }
+
+  // Map<String, List<String>> mapVolumeChapter(List<ChapterData> chapters) {
+  //   Map<String, List<String>> volumeChapterMap = {};
+  //
+  //   for (ChapterData chapter in chapters) {
+  //     String volume = chapter.attributes?.volume ?? 'Unknown Volume';
+  //     String chapterNumber = chapter.attributes?.chapter ?? 'Unknown Chapter';
+  //
+  //     if (!volumeChapterMap.containsKey(volume)) {
+  //       volumeChapterMap[volume] = [];
+  //     }
+  //
+  //     volumeChapterMap[volume]!.add(chapterNumber);
+  //   }
+  //
+  //   return volumeChapterMap;
+  // }
 
   Future<ChapterList> nextPage(var offset) {
     offset = offset + 5;
