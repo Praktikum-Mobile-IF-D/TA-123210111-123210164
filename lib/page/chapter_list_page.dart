@@ -145,7 +145,8 @@ class _ChapterListPageState extends State<ChapterListPage> {
                             });
                           } : null,
                           child: const Text('Next')),
-                    ])
+                    ]
+                )
               ],
             );
           }
