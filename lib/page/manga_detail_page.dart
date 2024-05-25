@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ta_123210111_123210164/handler/database_handler.dart';
 import 'package:ta_123210111_123210164/model/language.dart';
 import 'package:ta_123210111_123210164/model/manga.dart';
 import 'dart:convert' as convert;
+
 import 'package:ta_123210111_123210164/model/manga_list.dart';
 import 'package:ta_123210111_123210164/model/url_builder.dart';
+import 'package:ta_123210111_123210164/model/user.dart';
 import 'package:ta_123210111_123210164/page/chapter_read_page.dart';
 import 'package:ta_123210111_123210164/page/home_page.dart';
 import 'package:ta_123210111_123210164/model/chapter_list.dart';
-import '../handler/database_handler.dart';
-import '../model/user.dart';
 
 class MangaDetailPage extends StatefulWidget {
   final String mangaId;
@@ -50,7 +52,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
 
   void addToFavorites() async {
     if (currentUser != null) {
-      List<String> favorites = currentUser!.favorites != null ? currentUser!.favorites!.split(',') : [];
+      List<String> favorites = getFavorites();
       if (!favorites.contains(widget.mangaId)) {
         favorites.add(widget.mangaId);
         currentUser!.favorites = favorites.join(',');
@@ -60,6 +62,9 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
         );
         print('Manga added to favorites: ${currentUser!.favorites}');
       } else {
+        favorites.removeAt(favorites.indexOf(widget.mangaId));
+        currentUser!.favorites = favorites.join(',');
+        await _dbHandler.updateUser(currentUser!);
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Manga sudah ada di favorit'))
         );
@@ -67,9 +72,19 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
     }
   }
 
+  List<String> getFavorites() {
+    return currentUser!.favorites != null ? currentUser!.favorites!.split(',') : [];
+  }
+
+  // TODO: bikin search manga
+  // TODO: bikin favorit
+  // TODO: filters
+
   Future<Manga> getManga() async {
     UrlBuilder urlBuilder = UrlBuilder('manga/${widget.mangaId}');
+
     List<String> includes = ['cover_art', 'artist', 'author'];
+
     urlBuilder.addArrayParam('includes[]', includes);
 
     var url = urlBuilder.build();
@@ -93,8 +108,11 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
       finalOrderQuery['order[$key]'] = value;
     });
 
+    // List<String> languages = ['en', 'id'];
+    // todo: pilih language
     urlBuilder
         .addParams(finalOrderQuery)
+    // .addArrayParam('translatedLanguage[]', languages)
         .addParam('limit', '$limit')
         .addParam('offset', '$offset');
 
@@ -141,24 +159,9 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                   children: [
                     Expanded(
                       flex: 1,
-                      child: FutureBuilder<Map<String, String>>(
-                        future: fetchMangaDetails(widget.mangaId),
-                        builder: (context, detailSnapshot) {
-                          if (detailSnapshot.connectionState == ConnectionState.waiting) {
-                            return CircularProgressIndicator();
-                          } else if (detailSnapshot.hasError) {
-                            return Text('Error: ${detailSnapshot.error}');
-                          } else if (!detailSnapshot.hasData || detailSnapshot.data == null) {
-                            return Text('No data available');
-                          } else {
-                            var details = detailSnapshot.data!;
-                            var coverUrl = 'https://uploads.mangadex.org/covers/${widget.mangaId}/${details['fileName']}';
-                            return Image.network(
-                              coverUrl,
-                              fit: BoxFit.contain,
-                            );
-                          }
-                        },
+                      child: Image.network(
+                        'https://uploads.mangadex.org/covers/${manga.id}/${manga.getCoverId()?.attributes?.fileName}.256.jpg',
+                        fit: BoxFit.contain,
                       ),
                     ),
                     Expanded(
@@ -174,7 +177,8 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                           SizedBox(
                             height: 12,
                           ),
-                          Text('${manga.getAuthor()?.attributes?.name ?? ''}, ${manga.getArtist()?.attributes?.name ?? ''}'),
+                          Text(
+                              '${manga.getAuthor()?.attributes?.name ?? ''}, ${manga.getArtist()?.attributes?.name ?? ''}'),
                         ],
                       ),
                     ),
@@ -182,7 +186,9 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                 ),
                 InkWell(
                   onTap: () {
-                    addToFavorites();
+                    setState(() {
+                      addToFavorites();
+                    });
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
@@ -193,9 +199,9 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                       color: Colors.orange,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        "Favorite",
+                        getFavorites().contains(widget.mangaId) ? 'Unfavorite' : 'Favorite',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -206,13 +212,17 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                   ),
                 ),
                 ListTile(
+                  // title: Text(manga.attributes!.title?.titles['en'] ?? 'Unknown Title'),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 5),
                       Text(manga.attributes?.description?.en ??
-                          (manga.attributes?.description?.descriptions.values.isNotEmpty == true
-                              ? manga.attributes?.description?.descriptions.values.first
+                          (manga.attributes?.description?.descriptions.values
+                              .isNotEmpty ==
+                              true
+                              ? manga.attributes?.description?.descriptions
+                              .values.first
                               : '') ??
                           ''),
                       Text('Year: ${manga.attributes?.year ?? ''}'),
@@ -300,31 +310,60 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                               itemCount: snapshot.data!.data!.length,
                               itemBuilder: (context, index) {
                                 var chapter = snapshot.data!.data![index];
+
+                                // TODO: iki yo dit
+                                // TODO: ambil key, grup value by key
+                                // var jono = groupChaptersByVolume(snapshot.data!.data);
+                                // List<ChapterData>? chaptersForVolume = jono['1'];
+                                // for (var budi in chaptersForVolume!) {
+                                //   print(budi.attributes?.chapter);
+                                // }
+
+                                // jono.forEach((key, value) {
+                                //   // print('key = $key');
+                                //   print('key = $key, value = $value');
+                                //   // List<ChapterData>? chaptersForVolume = jono['$key'];
+                                //   for (var budi in jono['$key']!) {
+                                //     print(budi.attributes?.chapter);
+                                //   }
+                                // });
+
                                 return Card(
                                   elevation: 2,
-                                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
                                   child: Padding(
                                     padding: const EdgeInsets.all(10),
                                     child: ListTile(
                                       title: Text(
                                         'Chapter ${chapter.attributes?.chapter ?? ' '}',
-                                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                       subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                         children: [
                                           const SizedBox(height: 5),
-                                          Text('Volume: ${chapter.attributes?.volume ?? ''}'),
-                                          Text('Chapter: ${chapter.attributes?.chapter ?? ''}'),
-                                          Text('Language: ${chapter.attributes?.translatedLanguage ?? ''}'),
+                                          Text(
+                                              'Volume: ${chapter.attributes?.volume ?? ''}'),
+                                          Text(
+                                              'Chapter: ${chapter.attributes?.chapter ?? ''}'),
+                                          Text(
+                                              'Language: ${chapter.attributes?.translatedLanguage ?? ''}'),
                                         ],
                                       ),
-                                      trailing: const Icon(Icons.keyboard_arrow_right),
+                                      trailing: const Icon(
+                                          Icons.keyboard_arrow_right),
                                       onTap: () {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => ChapterReadPage(chapterId: chapter.id ?? ''),
+                                            builder: (context) =>
+                                                ChapterReadPage(
+                                                    chapterId:
+                                                    chapter.id ?? ''),
                                           ),
                                         );
                                       },
@@ -340,7 +379,8 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                                   onPressed: snapshot.data!.offset! > 0
                                       ? () {
                                     setState(() {
-                                      chapters = previousPage(snapshot.data!.offset!);
+                                      chapters = previousPage(
+                                          snapshot.data!.offset!);
                                     });
                                   }
                                       : null,
@@ -351,10 +391,12 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                                   child: const Text('Page'),
                                 ),
                                 ElevatedButton(
-                                  onPressed: snapshot.data!.offset! + 6 < snapshot.data!.total!
+                                  onPressed: snapshot.data!.offset! + 6 <
+                                      snapshot.data!.total!
                                       ? () {
                                     setState(() {
-                                      chapters = nextPage(snapshot.data!.offset!);
+                                      chapters = nextPage(
+                                          snapshot.data!.offset!);
                                     });
                                   }
                                       : null,
@@ -375,38 +417,35 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
     );
   }
 
-  Future<Map<String, String>> fetchMangaDetails(String mangaId) async {
-    UrlBuilder mangaDetailsUrlBuilder = UrlBuilder('manga/$mangaId');
-    var mangaDetailsUrl = mangaDetailsUrlBuilder.build();
-    final response = await http.get(mangaDetailsUrl);
+  // TODO: karo iki dit.
+  // Map<String, List<ChapterData>> groupChaptersByVolume(List<ChapterData>? chapters) {
+  //   var groupedChapters = <String, List<ChapterData>>{};
+  //   for (var chapter in chapters!) {
+  //     var volume = chapter.attributes?.volume ?? 'Unknown Volume';
+  //     if (!groupedChapters.containsKey(volume)) {
+  //       groupedChapters['$volume'] = [];
+  //     }
+  //     groupedChapters['$volume']!.add(chapter);
+  //   }
+  //   return groupedChapters;
+  // }
 
-    if (response.statusCode == 200) {
-      var data = convert.jsonDecode(response.body);
-      var title = data['data']['attributes']['title']['en'] ?? 'Unknown Title';
-      var coverArt = data['data']['relationships'].firstWhere(
-              (rel) => rel['type'] == 'cover_art',
-          orElse: () => null
-      );
-      if (coverArt != null) {
-        final coverId = coverArt['id'];
-        UrlBuilder coverDetailsUrlBuilder = UrlBuilder('cover/$coverId');
-        var coverDetailsUrl = coverDetailsUrlBuilder.build();
-        final coverResponse = await http.get(coverDetailsUrl);
-
-        if (coverResponse.statusCode == 200) {
-          var coverData = convert.jsonDecode(coverResponse.body);
-          var fileName = coverData['data']['attributes']['fileName'];
-          return {'title': title, 'fileName': fileName, 'coverId': coverId};
-        } else {
-          throw Exception('Failed to load cover filename');
-        }
-      } else {
-        throw Exception('No cover art found');
-      }
-    } else {
-      throw Exception('Failed to load manga data');
-    }
-  }
+  // Map<String, List<String>> mapVolumeChapter(List<ChapterData> chapters) {
+  //   Map<String, List<String>> volumeChapterMap = {};
+  //
+  //   for (ChapterData chapter in chapters) {
+  //     String volume = chapter.attributes?.volume ?? 'Unknown Volume';
+  //     String chapterNumber = chapter.attributes?.chapter ?? 'Unknown Chapter';
+  //
+  //     if (!volumeChapterMap.containsKey(volume)) {
+  //       volumeChapterMap[volume] = [];
+  //     }
+  //
+  //     volumeChapterMap[volume]!.add(chapterNumber);
+  //   }
+  //
+  //   return volumeChapterMap;
+  // }
 
   Future<ChapterList> nextPage(var offset) {
     offset = offset + 5;
@@ -451,6 +490,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                       );
                     },
                     suggestionsBuilder: (BuildContext context, SearchController controller) {
+                      // Filter the languages based on the search input
                       final query = controller.text.toLowerCase();
                       final filteredLanguages = languages.keys
                           .where((language) => language.toLowerCase().contains(query))
@@ -471,6 +511,18 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                     }
                 ),
               ),
+              // Text(selectedLanguages.join())
+              // if(selectedLanguages.isNotEmpty) Expanded(
+              //   child: ListView.builder(
+              //     itemCount: selectedLanguages.length,
+              //     itemBuilder: (BuildContext context, int index) {
+              //       print(selectedLanguages);
+              //       return ListTile(
+              //         title: Text(selectedLanguages.elementAt(index)),
+              //       );
+              //     },
+              //   ),
+              // ),
             ],
           ),
           actions: <Widget>[
