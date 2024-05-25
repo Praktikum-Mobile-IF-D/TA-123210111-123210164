@@ -281,16 +281,16 @@ class Links {
   Map<String, dynamic> toJson() => links;
 
 
-  // Map<String, dynamic> toJson() => {
-  //   'al' : al,
-  //   'ap' : ap,
-  //   'kt' : kt,
-  //   'mu' : mu,
-  //   'nu' : nu,
-  //   'mal' : mal,
-  //   'raw' : raw,
-  //   'engtl' : engtl
-  // };
+// Map<String, dynamic> toJson() => {
+//   'al' : al,
+//   'ap' : ap,
+//   'kt' : kt,
+//   'mu' : mu,
+//   'nu' : nu,
+//   'mal' : mal,
+//   'raw' : raw,
+//   'engtl' : engtl
+// };
 }
 
 class Tags {
@@ -362,12 +362,12 @@ class Name {
   };
   Map<String, dynamic> toJson() => names;
 
-  // Name.fromJson(Map<String, dynamic> json)
-  //     : en = json['en'] as String?;
-  //
-  // Map<String, dynamic> toJson() => {
-  //   'en' : en
-  // };
+// Name.fromJson(Map<String, dynamic> json)
+//     : en = json['en'] as String?;
+//
+// Map<String, dynamic> toJson() => {
+//   'en' : en
+// };
 }
 
 class Relationships {

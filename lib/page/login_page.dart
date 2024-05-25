@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../handler/database_handler.dart';
 import '../model/user.dart';
 import '../widgets/button_widget.dart';
@@ -96,6 +97,11 @@ class _LoginPageState extends State<LoginPage> {
                                   List<User> users = await _dbHandler.retrieveUsers();
                                   bool isValidUser = users.any((user) => user.username == _usernameController.text && user.password == _passwordController.text);
                                   if (isValidUser) {
+                                    User user = users.firstWhere((user) => user.username == _usernameController.text && user.password == _passwordController.text);
+                                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                                    await prefs.setString('username', _usernameController.text);
+                                    await prefs.setString('password', _passwordController.text);
+                                    await prefs.setString('image', user.image?.path ?? '');
                                     Navigator.pushReplacementNamed(context, '/home');
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid username or password')));
@@ -103,6 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                                 }
                               },
                             ),
+
                           ],
                         ),
                       ),

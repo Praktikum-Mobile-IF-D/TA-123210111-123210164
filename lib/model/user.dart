@@ -4,7 +4,7 @@ class User {
   final int? id;
   final String? username;
   final String? password;
-  final String? favorites;
+  String? favorites;
   final File? image;
 
   User({this.id, this.username, this.password, this.favorites, this.image});
@@ -23,4 +23,11 @@ class User {
     'favorites' : favorites,
     'image' : image?.path
   };
+
+  String addFavorite(String mangaTitle) {
+    if (!favorites!.contains(mangaTitle)) {
+      return favorites! + '${mangaTitle},';
+    }
+    return favorites!;
+  }
 }
