@@ -1,17 +1,15 @@
 class UrlBuilder {
-  String baseUrl = "https://api.mangadex.org/";
+  String baseUrl;
   final String subUrl;
   Map<String, dynamic> _params = {};
 
-  UrlBuilder(this.subUrl);
+  UrlBuilder(this.subUrl, {this.baseUrl = "https://api.mangadex.org/"});
 
-  // Method to add a parameter to the URL
   UrlBuilder addParam(String key, String value) {
     _params[key] = value;
     return this;
   }
 
-  // Method to add multiple parameters to the URL
   UrlBuilder addParams(Map<String, String> params) {
     _params.addAll(params);
     return this;
@@ -22,13 +20,19 @@ class UrlBuilder {
     return this;
   }
 
-  // Method to build the final URL
   Uri build() {
-    Uri uri = Uri.parse(baseUrl+subUrl).replace(queryParameters: _params);
-    return uri;
+    Map<String, String> stringParams = {};
+    _params.forEach((key, value) {
+      if (value is List<String>) {
+        stringParams[key] = value.join(',');
+      } else {
+        stringParams[key] = value.toString();
+      }
+    });
+
+    return Uri.parse(baseUrl + subUrl).replace(queryParameters: stringParams);
   }
 
-  // Method to reset parameters
   void reset() {
     _params = {};
   }
