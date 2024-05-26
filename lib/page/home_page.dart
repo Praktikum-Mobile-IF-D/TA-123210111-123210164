@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ta_123210111_123210164/handler/database_handler.dart';
+import 'package:ta_123210111_123210164/model/random_manga.dart';
 import 'package:ta_123210111_123210164/model/user.dart';
+import 'package:ta_123210111_123210164/page/advanced_search_page.dart';
 import 'package:ta_123210111_123210164/page/manga_detail_page.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'package:ta_123210111_123210164/model/manga_list.dart';
-import 'package:ta_123210111_123210164/page/chapter_list_page.dart';
 import 'package:ta_123210111_123210164/model/url_builder.dart';
 import 'package:ta_123210111_123210164/page/profile_page.dart';
-
-import '../model/random_manga.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -65,6 +64,10 @@ class _HomePageState extends State<HomePage> {
 
   Future<MangaList> getManga([String? title]) async {
     UrlBuilder urlBuilder = UrlBuilder('manga');
+
+    List<String> includes = ['cover_art', 'artist', 'author'];
+
+    urlBuilder.addArrayParam('includes[]', includes);
 
     if (title != null && title.isNotEmpty) {
       setState(() {
@@ -207,29 +210,14 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: FutureBuilder<Map<String, String>>(
-                          future: fetchMangaDetails(manga.id ?? ''),
-                          builder: (context, coverSnapshot) {
-                            if (coverSnapshot.connectionState == ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            } else if (coverSnapshot.hasError) {
-                              return Center(child: Icon(Icons.broken_image));
-                            } else {
-                              var details = coverSnapshot.data!;
-                              var coverFilename = details['fileName'] ?? '';
-                              var coverId = details['coverId'] ?? '';
-                              String coverUrl = 'https://uploads.mangadex.org/covers/${manga.id}/$coverFilename';
-                              return ClipRRect(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(4.0)),
-                                child: Image.network(
-                                  coverUrl,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                ),
-                              );
-                            }
-                          },
-                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(4.0)),
+                          child: Image.network(
+                            'https://uploads.mangadex.org/covers/${manga.id}/${manga.getCoverId()?.attributes?.fileName}.256.jpg',
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          ),
+                        )
                       ),
                       Padding(
                         padding: const EdgeInsets.all(10),
@@ -545,6 +533,7 @@ class _HomePageState extends State<HomePage> {
               title: const Text('Latest Update'),
               onTap: () {
                 setState(() {
+                  _searchController.clear();
                   showFavorites = false;
                   showRandom = false;
                   pageTitle = 'Latest Updates';
@@ -557,12 +546,19 @@ class _HomePageState extends State<HomePage> {
               title: const Text('Advanced Search'),
               onTap: () {
                 // Implement advanced search functionality
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdvancedSearchPage(),
+                  ),
+                );
               },
             ),
             ListTile(
               title: const Text('Random Manga'),
               onTap: () {
                 setState(() {
+                  _searchController.clear();
                   showFavorites = false;
                   showRandom = true;
                   pageTitle = 'Random Manga';
@@ -574,6 +570,7 @@ class _HomePageState extends State<HomePage> {
               title: const Text('Favorite Manga'),
               onTap: () {
                 setState(() {
+                  _searchController.clear();
                   showFavorites = true;
                   showRandom = false;
                   pageTitle = 'Favorite Manga';

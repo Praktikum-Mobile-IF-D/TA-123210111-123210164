@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:multi_dropdown/models/value_item.dart';
+import 'package:multi_dropdown/multiselect_dropdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ta_123210111_123210164/handler/database_handler.dart';
 import 'package:ta_123210111_123210164/model/language.dart';
@@ -30,7 +32,11 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   int limit = 5;
   final _pageController = TextEditingController();
 
-  final List<String> selectedLanguages = [];
+  List<String> selectedLanguages = [];
+  final MultiSelectController _availableTranslatedLanguageController = MultiSelectController();
+  List<ValueItem> selectedLanguagesCheckbox = List.empty();
+
+
   final _dbHandler = DatabaseHandler();
   User? currentUser;
 
@@ -108,14 +114,10 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
       finalOrderQuery['order[$key]'] = value;
     });
 
-    // List<String> languages = ['en', 'id'];
-    // todo: pilih language
     urlBuilder
         .addParams(finalOrderQuery)
-    // .addArrayParam('translatedLanguage[]', languages)
         .addParam('limit', '$limit')
         .addParam('offset', '$offset');
-
     if(selectedLanguages.isNotEmpty) urlBuilder.addArrayParam('translatedLanguage[]', selectedLanguages);
 
     var url = urlBuilder.build();
@@ -266,8 +268,14 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                     ),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          _settingDialogBuilder(context);
+                        onTap: () async {
+                          bool? settingsChanged = await _settingDialogBuilder(context);
+                          if (settingsChanged != null && settingsChanged) {
+                            setState(() {
+                              selectedLanguages = selectedLanguagesCheckbox.map((item) => item.value as String).toList();
+                              chapters = getChapters(initialOffset, selectedLanguages);
+                            });
+                          }
                         },
                         child: Container(
                           height: 55,
@@ -387,7 +395,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                                   child: const Text('Previous'),
                                 ),
                                 ElevatedButton(
-                                  onPressed: () => _pageDialogBuilder(context),
+                                  onPressed: () => _pageDialogBuilder(context, snapshot.data!.total),
                                   child: const Text('Page'),
                                 ),
                                 ElevatedButton(
@@ -458,100 +466,118 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
     return getChapters(offset, selectedLanguages);
   }
 
-  Future<void> _settingDialogBuilder(BuildContext context) {
-    Map<String,String> languages = Language().languages;
-    var _languagesController = TextEditingController();
+  Future<bool?> _settingDialogBuilder(BuildContext context) {
+    // Map<String,String> languages = Language().languages;
+    Language languages = Language();
 
-    return showDialog<void>(
+    return showDialog<bool?>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Chapter Settings'),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Filter Language"),
-              Text("Include Languages: "),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SearchAnchor(
-                    builder: (BuildContext context, SearchController controller) {
-                      return SearchBar(
-                        controller: controller,
-                        padding: const MaterialStatePropertyAll<EdgeInsets>(
-                            EdgeInsets.symmetric(horizontal: 16.0)),
-                        onTap: () {
-                          controller.openView();
-                        },
-                        onChanged: (_) {
-                          controller.openView();
-                        },
-                        leading: const Icon(Icons.search),
-                      );
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Text('Chapter Settings'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Filter Chapter Language"),
+                  const Text("Include Languages: "),
+                  MultiSelectDropDown<dynamic>(
+                    searchEnabled: true,
+                    controller: _availableTranslatedLanguageController,
+                    hint: 'Languages',
+                    onOptionSelected: (options) {
+                      // debugPrint(options.toString());
+                      selectedLanguagesCheckbox = options.cast<ValueItem>();
+                      // debugPrint(selectedLanguage.toString() + 'a');
+                      // availableTranslatedLanguage = selectedLanguage.map((item) => item.value as String).toList();
+                      debugPrint(selectedLanguagesCheckbox.toString());
                     },
-                    suggestionsBuilder: (BuildContext context, SearchController controller) {
-                      // Filter the languages based on the search input
-                      final query = controller.text.toLowerCase();
-                      final filteredLanguages = languages.keys
-                          .where((language) => language.toLowerCase().contains(query))
-                          .toList();
-
-                      return List<ListTile>.generate(filteredLanguages.length, (int index) {
-                        final String language = filteredLanguages[index];
-                        return ListTile(
-                          title: Text(language),
-                          onTap: () {
-                            setState(() {
-                              selectedLanguages.add(languages[language]!);
-                              controller.closeView(language);
-                            });
-                          },
-                        );
-                      });
-                    }
+                    options: languages.toValueItems(),
+                    selectionType: SelectionType.multi,
+                    chipConfig: const ChipConfig(wrapType: WrapType.wrap),
+                    optionTextStyle: const TextStyle(fontSize: 16),
+                    selectedOptionIcon: const Icon(Icons.check_circle),
+                  ),
+                  // Padding(
+                  //   padding: const EdgeInsets.all(8.0),
+                  //   child: SearchAnchor(
+                  //       builder: (BuildContext context, SearchController controller) {
+                  //         return SearchBar(
+                  //           controller: controller,
+                  //           padding: const MaterialStatePropertyAll<EdgeInsets>(
+                  //               EdgeInsets.symmetric(horizontal: 16.0)),
+                  //           onTap: () {
+                  //             controller.openView();
+                  //           },
+                  //           onChanged: (_) {
+                  //             controller.openView();
+                  //           },
+                  //           leading: const Icon(Icons.search),
+                  //         );
+                  //       },
+                  //       suggestionsBuilder: (BuildContext context, SearchController controller) {
+                  //         // Filter the languages based on the search input
+                  //         final query = controller.text.toLowerCase();
+                  //         final filteredLanguages = languages.keys
+                  //             .where((language) => language.toLowerCase().contains(query))
+                  //             .toList();
+                  //
+                  //         return List<ListTile>.generate(filteredLanguages.length, (int index) {
+                  //           final String language = filteredLanguages[index];
+                  //           return ListTile(
+                  //             title: Text(language),
+                  //             onTap: () {
+                  //               setState(() {
+                  //                 if(!selectedLanguages.contains(languages[language]!)) {
+                  //                   selectedLanguages.add(languages[language]!);
+                  //                 }
+                  //                 controller.closeView(language);
+                  //               });
+                  //             },
+                  //           );
+                  //         });
+                  //       }
+                  //   ),
+                  // ),
+                  // Text("Click to Remove"),
+                  // Wrap(
+                  //   spacing: 2.0,
+                  //   children: selectedLanguages.map((language) {
+                  //     return ElevatedButton(
+                  //       onPressed: () {
+                  //         setState(() {
+                  //           selectedLanguages.remove(language);
+                  //         });
+                  //       },
+                  //       child: Text(language),
+                  //     );
+                  //   }).toList(),
+                  // ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  style: TextButton.styleFrom(
+                    textStyle: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  child: const Text('Close'),
+                  onPressed: () {
+                    chapters = getChapters(initialOffset, selectedLanguages);
+                    Navigator.pop(context, true);
+                    // Navigator.of(context).pop();
+                  },
                 ),
-              ),
-              // Text(selectedLanguages.join())
-              // if(selectedLanguages.isNotEmpty) Expanded(
-              //   child: ListView.builder(
-              //     itemCount: selectedLanguages.length,
-              //     itemBuilder: (BuildContext context, int index) {
-              //       print(selectedLanguages);
-              //       return ListTile(
-              //         title: Text(selectedLanguages.elementAt(index)),
-              //       );
-              //     },
-              //   ),
-              // ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Save'),
-              onPressed: () {
-                chapters = getChapters(initialOffset, selectedLanguages);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+              ],
+            );
+          }
         );
       },
     );
   }
 
-  Future<void> _pageDialogBuilder(BuildContext context) {
+  Future<void> _pageDialogBuilder(BuildContext context, var total) {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -578,9 +604,11 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
               child: const Text('Go'),
               onPressed: () {
                 var pageOffset = int.parse(_pageController.text);
-                setState(() {
-                  chapters = getChapters(5 * pageOffset - 5, selectedLanguages);
-                });
+                if((pageOffset*5-5) < total) {
+                  setState(() {
+                    chapters = getChapters(5 * pageOffset - 5, selectedLanguages);
+                  });
+                }
                 Navigator.of(context).pop();
               },
             ),

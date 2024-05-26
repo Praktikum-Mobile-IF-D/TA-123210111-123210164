@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ta_123210111_123210164/page/chapter_list_page.dart';
 import 'package:ta_123210111_123210164/page/chapter_read_page.dart';
 import 'package:ta_123210111_123210164/page/home_page.dart';
 import 'package:ta_123210111_123210164/page/login_page.dart';
