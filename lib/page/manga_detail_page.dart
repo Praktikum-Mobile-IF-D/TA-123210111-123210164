@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:multi_dropdown/models/value_item.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ta_123210111_123210164/handler/DBHelper.dart';
 import 'package:ta_123210111_123210164/handler/database_handler.dart';
 import 'package:ta_123210111_123210164/model/language.dart';
 import 'package:ta_123210111_123210164/model/manga.dart';
@@ -37,7 +38,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   List<ValueItem> selectedLanguagesCheckbox = List.empty();
 
 
-  final _dbHandler = DatabaseHandler();
+  final _dbHandler = DBHelper();
   User? currentUser;
 
   @override

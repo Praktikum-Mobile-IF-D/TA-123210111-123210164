@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../handler/database_handler.dart';
-import '../model/user.dart';
+import 'package:ta_123210111_123210164/handler/DBHelper.dart';
 import '../widgets/button_widget.dart';
 
 class LoginPage extends StatefulWidget {
@@ -11,10 +10,30 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  late SharedPreferences prefs;
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _dbHandler = DatabaseHandler();
+  // final _dbHandler = DBHelper();
+
+  @override
+  void initState() {
+    super.initState();
+    initial();
+  }
+
+  void initial() async {
+    prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _savedEmail = prefs.getString('email')!;
+      if(_savedEmail.isNotEmpty || _savedPassword.isNotEmpty) {
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => HomePage()));
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,14 +113,16 @@ class _LoginPageState extends State<LoginPage> {
                               textColor: const [Colors.white, Colors.white],
                               onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
-                                  List<User> users = await _dbHandler.retrieveUsers();
-                                  bool isValidUser = users.any((user) => user.username == _usernameController.text && user.password == _passwordController.text);
-                                  if (isValidUser) {
-                                    User user = users.firstWhere((user) => user.username == _usernameController.text && user.password == _passwordController.text);
+                                  final user = await DBHelper().check(_usernameController.text, _passwordController.text);
+                                  // List<User> users = await _dbHandler.retrieveUsers();
+                                  // bool isValidUser = users.any((user) => user.username == _usernameController.text && user.password == _passwordController.text);
+                                  // if (isValidUser) {
+                                  if(user != null) {
+                                    // User user = users.firstWhere((user) => user.username == _usernameController.text && user.password == _passwordController.text);
                                     SharedPreferences prefs = await SharedPreferences.getInstance();
                                     await prefs.setString('username', _usernameController.text);
                                     await prefs.setString('password', _passwordController.text);
-                                    await prefs.setString('image', user.image?.path ?? '');
+                                    await prefs.setString('image', user['image']);
                                     Navigator.pushReplacementNamed(context, '/home');
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid username or password')));

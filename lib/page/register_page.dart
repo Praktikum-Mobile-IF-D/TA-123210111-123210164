@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:ta_123210111_123210164/handler/DBHelper.dart';
 import '../handler/database_handler.dart';
 import '../model/user.dart';
 import '../widgets/button_widget.dart';
@@ -16,7 +17,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _dbHandler = DatabaseHandler();
+  // final _dbHandler = DBHelper();
   File? _imageFile;
   final _picker = ImagePicker();
 
@@ -112,7 +113,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                 if (_formKey.currentState!.validate()) {
                                   await getImageFromCamera();
                                   User user = User(username: _usernameController.text, password: _passwordController.text, favorites: '', image: _imageFile);
-                                  _dbHandler.insertUser(user);
+                                  // _dbHandler.insertUser(user);
+
+                                  debugPrint(_imageFile.toString());
+
+                                  await DBHelper().insertUser(
+                                      _usernameController.text,
+                                      _passwordController.text,
+                                    '',
+                                      _imageFile.toString()
+                                  );
                                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Registered successfully')));
                                 }
                               },

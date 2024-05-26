@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ta_123210111_123210164/handler/DBHelper.dart';
 import 'package:ta_123210111_123210164/handler/database_handler.dart';
 import 'package:ta_123210111_123210164/model/random_manga.dart';
 import 'package:ta_123210111_123210164/model/user.dart';
@@ -48,7 +49,7 @@ class _HomePageState extends State<HomePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String username = prefs.getString('username') ?? '';
     String password = prefs.getString('password') ?? '';
-    List<User> users = await DatabaseHandler().retrieveUsers();
+    List<User> users = await DBHelper().retrieveUsers();
     User user = users.firstWhere((user) => user.username == username && user.password == password, orElse: () => User(username: username, password: password, favorites: ''));
     print('Current user favorites: ${user.favorites}');
     return user;
@@ -161,7 +162,7 @@ class _HomePageState extends State<HomePage> {
     if (!favorites.contains(manga)) {
       favorites.add(manga);
       user.favorites = favorites.join(',');
-      await DatabaseHandler().updateUser(user);
+      await DBHelper().updateUser(user);
       setState(() {
         currentUser = Future.value(user);
       });
@@ -282,7 +283,7 @@ class _HomePageState extends State<HomePage> {
                             setState(() {
                               favorites.removeAt(index);
                               user.favorites = favorites.join(',');
-                              DatabaseHandler().updateUser(user);
+                              DBHelper().updateUser(user);
                               _refreshFavorites();
                             });
                           },
@@ -316,7 +317,7 @@ class _HomePageState extends State<HomePage> {
                             setState(() {
                               favorites.removeAt(index);
                               user.favorites = favorites.join(',');
-                              DatabaseHandler().updateUser(user);
+                              DBHelper().updateUser(user);
                               _refreshFavorites();
                             });
                           },
@@ -363,7 +364,7 @@ class _HomePageState extends State<HomePage> {
                             setState(() {
                               favorites.removeAt(index);
                               user.favorites = favorites.join(',');
-                              DatabaseHandler().updateUser(user);
+                              DBHelper().updateUser(user);
                               _refreshFavorites();
                             });
                           },
