@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
-import 'package:multi_dropdown/models/value_item.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ta_123210111_123210164/handler/DBHelper.dart';
-import 'package:ta_123210111_123210164/handler/database_handler.dart';
 import 'package:ta_123210111_123210164/model/language.dart';
 import 'package:ta_123210111_123210164/model/manga.dart';
 import 'dart:convert' as convert;
 
-import 'package:ta_123210111_123210164/model/manga_list.dart';
 import 'package:ta_123210111_123210164/model/url_builder.dart';
 import 'package:ta_123210111_123210164/model/user.dart';
 import 'package:ta_123210111_123210164/page/chapter_read_page.dart';
-import 'package:ta_123210111_123210164/page/home_page.dart';
 import 'package:ta_123210111_123210164/model/chapter_list.dart';
 
 class MangaDetailPage extends StatefulWidget {

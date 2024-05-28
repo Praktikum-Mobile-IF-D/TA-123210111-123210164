@@ -21,16 +21,18 @@ class AdvancedSearchPage extends StatefulWidget {
 class _AdvancedSearchPageState extends State<AdvancedSearchPage> {
   Future<MangaList>? mangas;
   final _searchController = TextEditingController();
-  String pageTitle =  'Latest Updates';
+  String pageTitle =  'Advanced Search';
+  String _searchTitle = '';
+  
   List<String> availableTranslatedLanguage = [];
   List<String> contentRatingList = [];
   List<String> magazineDemographicList = [];
   List<String> publicationStatusList = [];
 
   List<ValueItem> selectedLanguages = List.empty();
-   List<ValueItem> selectedRatings = List.empty();
-   List<ValueItem> selectedDemographics = List.empty();
-   List<ValueItem> selectedPublications = List.empty();
+  List<ValueItem> selectedRatings = List.empty();
+  List<ValueItem> selectedDemographics = List.empty();
+  List<ValueItem> selectedPublications = List.empty();
   final MultiSelectController _availableTranslatedLanguageController = MultiSelectController();
   final MultiSelectController _contentRatingListController = MultiSelectController();
   final MultiSelectController _magazineDemographicListController = MultiSelectController();
@@ -40,13 +42,14 @@ class _AdvancedSearchPageState extends State<AdvancedSearchPage> {
   void initState() {
     super.initState();
     mangas = getManga();
+    _searchController.clear();
   }
 
   // TODO: bikin search manga
   // TODO: bikin favorit
   // TODO: filters
 
-  Future<MangaList> getManga([String? title]) async {
+  Future<MangaList> getManga([String? title, int? offset]) async {
     UrlBuilder urlBuilder = UrlBuilder('manga');
 
     List<String> includes = ['cover_art', 'artist', 'author'];
@@ -64,6 +67,8 @@ class _AdvancedSearchPageState extends State<AdvancedSearchPage> {
       pageTitle = 'Latest Updates';
     }
 
+    if(offset != null && offset != 0) urlBuilder.addParam('offset', '$offset');
+
     var url = urlBuilder.build();
     debugPrint(url.toString());
     // print(url);
@@ -74,6 +79,21 @@ class _AdvancedSearchPageState extends State<AdvancedSearchPage> {
     } else {
       throw Exception('Failed to load manga images, ${response.statusCode}');
     }
+  }
+
+  Future<MangaList> nextPage(var offset) {
+    debugPrint(offset.toString());
+    offset = offset + 10;
+    debugPrint(offset.toString());
+    return getManga(_searchTitle, offset);
+  }
+
+  Future<MangaList> previousPage(var offset) {
+    debugPrint(offset.toString());
+    offset = offset - 10;
+    debugPrint(offset.toString());
+    if (offset < 0) return getManga(_searchTitle, 0);
+    return getManga(_searchTitle, offset);
   }
 
   @override
@@ -101,9 +121,10 @@ class _AdvancedSearchPageState extends State<AdvancedSearchPage> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              onSubmitted: (title) {
+              onChanged: (title) {
                 setState(() {
-                  mangas = getManga(title);
+                  _searchTitle = title;
+                  mangas = getManga(_searchTitle);
                 });
               },
             ),
@@ -117,7 +138,7 @@ class _AdvancedSearchPageState extends State<AdvancedSearchPage> {
                   availableTranslatedLanguage = selectedLanguages.map((item) => item.value as String).toList();
                   contentRatingList = selectedRatings.map((item) => item.value as String).toList();
                   publicationStatusList = selectedPublications.map((item) => item.value as String).toList();
-                  mangas = getManga();
+                  mangas = getManga(_searchTitle);
                 });
               }
             },
@@ -143,7 +164,6 @@ class _AdvancedSearchPageState extends State<AdvancedSearchPage> {
               ),
             ),
           ),
-
           Expanded(
             child: FutureBuilder<MangaList>(
               future: mangas,
@@ -155,60 +175,93 @@ class _AdvancedSearchPageState extends State<AdvancedSearchPage> {
                 } else if (!snapshot.hasData || snapshot.data == null) {
                   return const Center(child: Text('No data available'));
                 } else {
-                  return GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.6,
-                    ),
-                    itemCount: snapshot.data!.data!.length,
-                    itemBuilder: (context, index) {
-                      var manga = snapshot.data!.data![index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MangaDetailPage(mangaId: manga.id ?? ''),
+                  return Column(
+                    children: [
+                      Expanded(
+                          child: GridView.builder(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.6,
                             ),
-                          );
-                        },
-                        child: Card(
-                          elevation: 2,
-                          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.vertical(top: Radius.circular(4.0)),
-                                    child: Image.network(
-                                      'https://uploads.mangadex.org/covers/${manga.id}/${manga.getCoverId()?.attributes?.fileName}.256.jpg',
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
+                            itemCount: snapshot.data!.data!.length,
+                            itemBuilder: (context, index) {
+                              var manga = snapshot.data!.data![index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MangaDetailPage(mangaId: manga.id ?? ''),
                                     ),
-                                  )
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Text(
-                                  manga.attributes?.title?.titles['en'] ??
-                                      (manga.attributes?.title?.titles.isNotEmpty == true
-                                          ? manga.attributes?.title?.titles.values.first
-                                          : '')
-                                      ?? '',
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  );
+                                },
+                                child: Card(
+                                  elevation: 2,
+                                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.vertical(top: Radius.circular(4.0)),
+                                            child: Image.network(
+                                              'https://uploads.mangadex.org/covers/${manga.id}/${manga.getCoverId()?.attributes?.fileName}.256.jpg',
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                            ),
+                                          )
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(10),
+                                        child: Text(
+                                          manga.attributes?.title?.titles['en'] ??
+                                              (manga.attributes?.title?.titles.isNotEmpty == true
+                                                  ? manga.attributes?.title?.titles.values.first
+                                                  : '')
+                                              ?? '',
+                                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              );
+                            },
                           ),
-                        ),
-                      );
-                    },
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ElevatedButton(
+                            onPressed: snapshot.data!.offset! > 0
+                                ? () {
+                              setState(() {
+                                mangas = previousPage(snapshot.data!.offset!);
+                              });
+                            }
+                                : null,
+                            child: const Text('Previous'),
+                          ),
+                          ElevatedButton(
+                            onPressed: snapshot.data!.offset! + 11 <
+                                snapshot.data!.total!
+                                ? () {
+                              setState(() {
+                                mangas = nextPage(snapshot.data!.offset!);
+                              });
+                            }
+                                : null,
+                            child: const Text('Next'),
+                          ),
+                        ],
+                      ),
+                    ],
                   );
                 }
               },
             )
-          )
+          ),
         ],
       ),
       // drawer: Drawer(

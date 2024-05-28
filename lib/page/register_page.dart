@@ -117,12 +117,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
                                   debugPrint(_imageFile.toString());
 
-                                  await DBHelper().insertUser(
-                                      _usernameController.text,
-                                      _passwordController.text,
-                                    '',
-                                      _imageFile.toString()
-                                  );
+                                  // await DBHelper().insertUser(
+                                  //     _usernameController.text,
+                                  //     _passwordController.text,
+                                  //   '',
+                                  //     _imageFile.toString()
+                                  // );
+                                  await DBHelper().insertUser(user);
                                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Registered successfully')));
                                 }
                               },

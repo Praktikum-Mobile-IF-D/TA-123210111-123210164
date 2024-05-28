@@ -33,10 +33,10 @@ class DBHelper {
     await db.execute('CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT, favorites TEXT, image TEXT)');
   }
 
-  // Future<int> insertUser(User user) async {
-  //   final db = await database;
-  //   return await db.insert('users', user.toJson());
-  // }
+  Future<int> insertUser(User user) async {
+    final db = await database;
+    return await db.insert('users', user.toJson());
+  }
 
   Future<List<User>> retrieveUsers() async {
     final db = await database;
@@ -65,15 +65,15 @@ class DBHelper {
     );
   }
   //
-  Future<int> insertUser(String username, String password, String favorite, String img) async {
-    final db = await database;
-    return await db.insert('users', {
-      'username': username,
-      'password': password,
-      'favorites': favorite,
-      'image': img,
-    });
-  }
+  // Future<int> insertUser(String username, String password, String favorite, String img) async {
+  //   final db = await database;
+  //   return await db.insert('users', {
+  //     'username': username,
+  //     'password': password,
+  //     'favorites': favorite,
+  //     'image': img,
+  //   });
+  // }
   //
   Future<Map<String, dynamic>?> check(String username, String password) async {
     final db = await database;

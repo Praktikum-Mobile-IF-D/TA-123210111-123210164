@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ta_123210111_123210164/handler/DBHelper.dart';
+import 'package:ta_123210111_123210164/page/home_page.dart';
 import '../widgets/button_widget.dart';
 
 class LoginPage extends StatefulWidget {
@@ -14,6 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  String _savedEmail = '';
   // final _dbHandler = DBHelper();
 
   @override
@@ -26,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
     prefs = await SharedPreferences.getInstance();
     setState(() {
       _savedEmail = prefs.getString('email')!;
-      if(_savedEmail.isNotEmpty || _savedPassword.isNotEmpty) {
+      if(_savedEmail.isNotEmpty) {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -120,9 +122,13 @@ class _LoginPageState extends State<LoginPage> {
                                   if(user != null) {
                                     // User user = users.firstWhere((user) => user.username == _usernameController.text && user.password == _passwordController.text);
                                     SharedPreferences prefs = await SharedPreferences.getInstance();
+                                    String gambar = user['image'].replaceAll('File: \'', '');
+                                    String result = gambar.substring(0, gambar.length - 1);
+                                    await prefs.setInt('id', user['id']);
                                     await prefs.setString('username', _usernameController.text);
                                     await prefs.setString('password', _passwordController.text);
-                                    await prefs.setString('image', user['image']);
+                                    await prefs.setString('image', result ?? '');
+                                    debugPrint(result);
                                     Navigator.pushReplacementNamed(context, '/home');
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid username or password')));
