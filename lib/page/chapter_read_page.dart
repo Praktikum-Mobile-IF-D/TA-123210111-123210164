@@ -40,12 +40,6 @@ class _ChapterReadPageState extends State<ChapterReadPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manga List'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: FutureBuilder<ChapterImage>(
         future: circuits,
@@ -57,42 +51,23 @@ class _ChapterReadPageState extends State<ChapterReadPage> {
           } else if (!snapshot.hasData || snapshot.data!.chapter == null || snapshot.data!.chapter!.data == null) {
             return const Center(child: Text('No data available'));
           } else {
-            // var imageUrl = snapshot.data!.baseUrl! + '/data/' + snapshot.data!.chapter!.hash! + '/' + snapshot.data!.chapter!.data![index];
             var images = snapshot.data!.chapter!.dataSaver!;
-            // todo: option data saver
-            var image = snapshot.data!.baseUrl! + '/data-saver/' + snapshot.data!.chapter!.hash! + '/' + images[_currentIndex];
-            return Column(
-              children: [
-                Expanded(
-                  child: Image.network(image),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: _currentIndex > 0
-                          ? () {
-                        setState(() {
-                          _currentIndex--;
-                        });
-                      }
-                          : null,
-                      child: Text('Previous'),
-                    ),
-                    ElevatedButton(
-                      onPressed: _currentIndex < images.length - 1
-                          ? () {
-                        setState(() {
-                          _currentIndex++;
-                        });
-                      }
-                          : null,
-                      child: Text('Next'),
-                    ),
-                  ],
-                ),
-              ],
+            return PageView.builder(
+              itemCount: images.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                var image = snapshot.data!.baseUrl! + '/data-saver/' + snapshot.data!.chapter!.hash! + '/' + images[index];
+                return Image.network(image);
+              },
             );
+          }
+        },
+      ),
+
             // return ListView.builder(
             //   itemCount: snapshot.data!.chapter!.data!.length,
             //   itemBuilder: (context, index) {
@@ -110,9 +85,7 @@ class _ChapterReadPageState extends State<ChapterReadPage> {
             //     );
             //   },
             // );
-          }
-        },
-      ),
+
       // bottomNavigationBar: BottomAppBar(
       //   child: SizedBox(
       //     height: 50,

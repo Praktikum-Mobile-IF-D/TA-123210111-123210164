@@ -27,6 +27,7 @@ class _HomePageState extends State<HomePage> {
   String pageTitle = 'Latest Updates';
   bool showFavorites = false;
   bool showRandom = false;
+  bool showAdvancedSearch = false;
   Future<User>? currentUser;
   ScrollController _scrollController = ScrollController();
   List<RandomManga> randomMangaList = [];
@@ -211,14 +212,14 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(4.0)),
-                          child: Image.network(
-                            'https://uploads.mangadex.org/covers/${manga.id}/${manga.getCoverId()?.attributes?.fileName}.256.jpg',
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
-                        )
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(4.0)),
+                            child: Image.network(
+                              'https://uploads.mangadex.org/covers/${manga.id}/${manga.getCoverId()?.attributes?.fileName}.256.jpg',
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ),
+                          )
                       ),
                       Padding(
                         padding: const EdgeInsets.all(10),
@@ -256,7 +257,14 @@ class _HomePageState extends State<HomePage> {
           if (favorites.isEmpty) {
             return Center(child: Text('No favorites found'));
           }
-          return ListView.builder(
+          return GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.6,
+              mainAxisSpacing: 10.0,
+              crossAxisSpacing: 10.0,
+            ),
+            padding: const EdgeInsets.all(10.0),
             itemCount: favorites.length,
             itemBuilder: (context, index) {
               var manga = favorites[index];
@@ -266,71 +274,19 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, coverSnapshot) {
                   if (coverSnapshot.connectionState == ConnectionState.waiting) {
                     return Card(
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      child: ListTile(
-                        leading: SizedBox(
-                          width: 60.0,
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                        title: Text(
-                          'Loading...',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            setState(() {
-                              favorites.removeAt(index);
-                              user.favorites = favorites.join(',');
-                              DBHelper().updateUser(user);
-                              _refreshFavorites();
-                            });
-                          },
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MangaDetailPage(mangaId: manga),
-                            ),
-                          );
-                        },
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
                       ),
+                      child: Center(child: CircularProgressIndicator()),
                     );
                   } else if (coverSnapshot.hasError) {
                     return Card(
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      child: ListTile(
-                        leading: SizedBox(
-                          width: 60.0,
-                          child: Icon(Icons.broken_image),
-                        ),
-                        title: Text(
-                          'Error loading title',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            setState(() {
-                              favorites.removeAt(index);
-                              user.favorites = favorites.join(',');
-                              DBHelper().updateUser(user);
-                              _refreshFavorites();
-                            });
-                          },
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MangaDetailPage(mangaId: manga),
-                            ),
-                          );
-                        },
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
                       ),
+                      child: Center(child: Icon(Icons.broken_image)),
                     );
                   } else {
                     var details = coverSnapshot.data!;
@@ -340,43 +296,77 @@ class _HomePageState extends State<HomePage> {
 
                     String coverUrl = 'https://uploads.mangadex.org/covers/$mangaId/$coverFilename';
 
-                    return Card(
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      child: ListTile(
-                        leading: SizedBox(
-                          width: 60.0,
-                          child: Image.network(
-                            coverUrl,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.broken_image);
-                            },
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MangaDetailPage(mangaId: manga),
                           ),
+                        );
+                      },
+                      child: Card(
+                        elevation: 5,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        title: Text(
-                          title,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            setState(() {
-                              favorites.removeAt(index);
-                              user.favorites = favorites.join(',');
-                              DBHelper().updateUser(user);
-                              _refreshFavorites();
-                            });
-                          },
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MangaDetailPage(mangaId: manga),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                                child: Image.network(
+                                  coverUrl,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(child: Icon(Icons.broken_image));
+                                  },
+                                ),
+                              ),
                             ),
-                          );
-                        },
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            ButtonBar(
+                              alignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.info_outline),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => MangaDetailPage(mangaId: manga),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: () {
+                                    setState(() {
+                                      favorites.removeAt(index);
+                                      user.favorites = favorites.join(',');
+                                      DBHelper().updateUser(user);
+                                      _refreshFavorites();
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   }
@@ -390,6 +380,7 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
+
 
   Widget buildRandomMangaCard() {
     return GridView.builder(
@@ -459,6 +450,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget buildAdvancedSearch() {
+    return AdvancedSearchPage(showAppBar: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -478,16 +473,21 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          if (!showFavorites && !showRandom)
+          if (!showFavorites && !showRandom && !showAdvancedSearch)
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(
+                top: 5.0,
+                bottom: 8.0,
+                left: 0.0,
+                right: 0.0,
+              ),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search Manga...',
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                    borderRadius: BorderRadius.circular(0.0),
                   ),
                 ),
                 onSubmitted: (title) {
@@ -502,6 +502,8 @@ class _HomePageState extends State<HomePage> {
                 ? buildFavoriteMangaList()
                 : showRandom
                 ? buildRandomMangaCard()
+                : showAdvancedSearch
+                ? buildAdvancedSearch()
                 : buildMangaList(),
           )
         ],
@@ -518,25 +520,51 @@ class _HomePageState extends State<HomePage> {
                     decoration: BoxDecoration(
                       color: Colors.blue,
                     ),
-                    child: Text(snapshot.data!),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Selamat datang',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 24,
+                            ),
+                          ),
+                          Text(
+                            snapshot.data!,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 } else {
                   return DrawerHeader(
                     decoration: BoxDecoration(
                       color: Colors.blue,
                     ),
-                    child: CircularProgressIndicator(),
+                    child: Center(child: CircularProgressIndicator()),
                   );
                 }
               },
             ),
             ListTile(
               title: const Text('Latest Update'),
+              selected: !showFavorites && !showRandom && !showAdvancedSearch,
+              selectedTileColor: Colors.blueAccent.withOpacity(0.2),
               onTap: () {
                 setState(() {
                   _searchController.clear();
                   showFavorites = false;
                   showRandom = false;
+                  showAdvancedSearch = false;
                   pageTitle = 'Latest Updates';
                   mangas = getManga();
                 });
@@ -545,23 +573,29 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               title: const Text('Advanced Search'),
+              selected: showAdvancedSearch,
+              selectedTileColor: Colors.blueAccent.withOpacity(0.2),
               onTap: () {
-                // Implement advanced search functionality
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AdvancedSearchPage(),
-                  ),
-                );
+                setState(() {
+                  _searchController.clear();
+                  showFavorites = false;
+                  showRandom = false;
+                  showAdvancedSearch = true;
+                  pageTitle = 'Advanced Search';
+                });
+                Navigator.pop(context);
               },
             ),
             ListTile(
               title: const Text('Random Manga'),
+              selected: showRandom,
+              selectedTileColor: Colors.blueAccent.withOpacity(0.2),
               onTap: () {
                 setState(() {
                   _searchController.clear();
                   showFavorites = false;
                   showRandom = true;
+                  showAdvancedSearch = false;
                   pageTitle = 'Random Manga';
                 });
                 Navigator.pop(context);
@@ -569,11 +603,14 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               title: const Text('Favorite Manga'),
+              selected: showFavorites,
+              selectedTileColor: Colors.blueAccent.withOpacity(0.2),
               onTap: () {
                 setState(() {
                   _searchController.clear();
                   showFavorites = true;
                   showRandom = false;
+                  showAdvancedSearch = false;
                   pageTitle = 'Favorite Manga';
                   _refreshFavorites();
                 });

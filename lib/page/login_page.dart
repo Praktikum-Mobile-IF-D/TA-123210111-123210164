@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ta_123210111_123210164/handler/DBHelper.dart';
+import 'package:ta_123210111_123210164/model/user.dart';
 import 'package:ta_123210111_123210164/page/home_page.dart';
 import '../widgets/button_widget.dart';
 
@@ -115,20 +116,14 @@ class _LoginPageState extends State<LoginPage> {
                               textColor: const [Colors.white, Colors.white],
                               onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
-                                  final user = await DBHelper().check(_usernameController.text, _passwordController.text);
-                                  // List<User> users = await _dbHandler.retrieveUsers();
-                                  // bool isValidUser = users.any((user) => user.username == _usernameController.text && user.password == _passwordController.text);
-                                  // if (isValidUser) {
-                                  if(user != null) {
-                                    // User user = users.firstWhere((user) => user.username == _usernameController.text && user.password == _passwordController.text);
+                                  List<User> users = await DBHelper().retrieveUsers();
+                                  bool isValidUser = users.any((user) => user.username == _usernameController.text && user.password == _passwordController.text);
+                                  if (isValidUser) {
+                                    User user = users.firstWhere((user) => user.username == _usernameController.text && user.password == _passwordController.text);
                                     SharedPreferences prefs = await SharedPreferences.getInstance();
-                                    String gambar = user['image'].replaceAll('File: \'', '');
-                                    String result = gambar.substring(0, gambar.length - 1);
-                                    await prefs.setInt('id', user['id']);
                                     await prefs.setString('username', _usernameController.text);
                                     await prefs.setString('password', _passwordController.text);
-                                    await prefs.setString('image', result ?? '');
-                                    debugPrint(result);
+                                    await prefs.setString('image', user.image?.path ?? '');
                                     Navigator.pushReplacementNamed(context, '/home');
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid username or password')));
