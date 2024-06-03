@@ -111,20 +111,28 @@ class _RegisterPageState extends State<RegisterPage> {
                               textColor: const [Colors.white, Colors.white],
                               onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
-                                  await getImageFromCamera();
-                                  User user = User(username: _usernameController.text, password: _passwordController.text, favorites: '', image: _imageFile);
-                                  // _dbHandler.insertUser(user);
+                                  List<User> users = await DBHelper().retrieveUsers();
+                                  bool isValidUser = users.any((user) => user.username == _usernameController.text && user.password == _passwordController.text);
+                                  if (isValidUser) {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Username sudah ada')));
+                                  }
+                                  else {
+                                    await getImageFromCamera();
+                                    User user = User(username: _usernameController.text, password: _passwordController.text, favorites: '', image: _imageFile);
+                                    // _dbHandler.insertUser(user);
 
-                                  debugPrint(_imageFile.toString());
+                                    debugPrint(_imageFile.toString());
 
-                                  // await DBHelper().insertUser(
-                                  //     _usernameController.text,
-                                  //     _passwordController.text,
-                                  //   '',
-                                  //     _imageFile.toString()
-                                  // );
-                                  await DBHelper().insertUser(user);
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Registered successfully')));
+                                    // await DBHelper().insertUser(
+                                    //     _usernameController.text,
+                                    //     _passwordController.text,
+                                    //   '',
+                                    //     _imageFile.toString()
+                                    // );
+                                    await DBHelper().insertUser(user);
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Registered successfully')));
+                                  }
+
                                 }
                               },
                             ),
